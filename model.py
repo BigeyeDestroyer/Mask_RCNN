@@ -1151,9 +1151,17 @@ def load_image_gt(dataset, config, image_id, augment=False,
 
     Returns:
     image: [height, width, 3]
-    shape: the original shape of the image before resizing and cropping.
+    imagemeta: ndarray containing the following infomation
+        image_id: An int ID of the image. Useful for debugging.
+        image_shape: [height, width, channels]
+        window: (y1, x1, y2, x2) in pixels. The area of the image where the real
+                image is (excluding the padding)
+        active_class_ids: List of class_ids available in the dataset from which
+            the image came. Useful if training on images from multiple datasets
+            where not all classes are present in all datasets.
+
     class_ids: [instance_count] Integer class IDs
-    bbox: [instance_count, (y1, x1, y2, x2)]
+    bbox: [instance_count, (y1, x1, y2, x2)]; num_instance x 4
     mask: [height, width, instance_count]. The height and width are those
         of the image unless use_mini_mask is True, in which case they are
         defined in MINI_MASK_SHAPE.
@@ -1162,6 +1170,7 @@ def load_image_gt(dataset, config, image_id, augment=False,
     image = dataset.load_image(image_id)
     mask, class_ids = dataset.load_mask(image_id)
     shape = image.shape
+    # window : (top_pad, left_pad, h + top_pad, w + left_pad)
     image, window, scale, padding = utils.resize_image(
         image,
         min_dim=config.IMAGE_MIN_DIM,
@@ -1392,6 +1401,7 @@ def build_rpn_targets(image_shape, anchors, gt_class_ids, gt_boxes, config):
         no_crowd_bool = np.ones([anchors.shape[0]], dtype=bool)
 
     # Compute overlaps [num_anchors, num_gt_boxes]
+    # Each value the IoU of anchor and gt_box
     overlaps = utils.compute_overlaps(anchors, gt_boxes)
 
     # Match anchors to GT Boxes
@@ -1422,6 +1432,7 @@ def build_rpn_targets(image_shape, anchors, gt_class_ids, gt_boxes, config):
         # Reset the extra ones to neutral
         ids = np.random.choice(ids, extra, replace=False)
         rpn_match[ids] = 0
+
     # Same for negative proposals
     ids = np.where(rpn_match == -1)[0]
     extra = len(ids) - (config.RPN_TRAIN_ANCHORS_PER_IMAGE -
@@ -1610,11 +1621,19 @@ def data_generator(dataset, config, shuffle=True, augment=True, random_rois=0,
                 continue
 
             # RPN Targets
+            """rpn_match : batch_size x num_anchor x 1, {-1, 0, 1}
+                           -1 and 0 mean no box correlated, 1 means a box correlated
+
+                rpn_bbox :  batch_size x 256 x 4
+                            (x_gt - x_a) / w_a, (y_gt - y_a) / h_a
+                            ln(w_gt / w_a), ln(h_gt / h_a)
+            """
             rpn_match, rpn_bbox = build_rpn_targets(image.shape, anchors,
                                                     gt_class_ids, gt_boxes, config)
 
             # Mask R-CNN Targets
             if random_rois:
+                # rpn_rios : num_rois_per_image x 4 ndarray
                 rpn_rois = generate_random_rois(
                     image.shape, random_rois, gt_class_ids, gt_boxes)
                 if detection_targets:

@@ -192,6 +192,8 @@ If you use Docker, the code has been verified to work on
 
 ## Notes about this paper
 
+## [Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks][23]
+
 [1]:	https://arxiv.org/abs/1703.06870
 [2]:	https://matterport.com/blog/2017/09/20/announcing-matterport3d-research-dataset/
 [3]:	https://matterport.com/gallery/
@@ -214,6 +216,7 @@ If you use Docker, the code has been verified to work on
 [20]:	https://github.com/rbgirshick/py-faster-rcnn/blob/master/data/README.md
 [21]:	https://hub.docker.com/r/waleedka/modern-deep-learning/
 [22]:	https://github.com/matterport/Mask_RCNN/releases
+[23]:	http://papers.nips.cc/paper/5638-faster-r-cnn-towards-real-time-object-detection-with-region-proposal-networks.pdf
 
 [image-1]:	assets/street.png
 [image-2]:	assets/detection_anchors.png

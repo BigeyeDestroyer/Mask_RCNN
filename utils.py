@@ -57,7 +57,7 @@ def extract_bboxes(mask):
 def compute_iou(box, boxes, box_area, boxes_area):
     """Calculates IoU of the given box with the array of the given boxes.
     box: 1D vector [y1, x1, y2, x2]
-    boxes: [boxes_count, (y1, x1, y2, x2)]
+    boxes: N x 4 ndarray, [boxes_count, (y1, x1, y2, x2)]
     box_area: float. the area of 'box'
     boxes_area: array of length boxes_count.
 
@@ -77,7 +77,8 @@ def compute_iou(box, boxes, box_area, boxes_area):
 
 def compute_overlaps(boxes1, boxes2):
     """Computes IoU overlaps between two sets of boxes.
-    boxes1, boxes2: [N, (y1, x1, y2, x2)].
+    boxes1 : N x 4, (y1, x1, y2, x2)
+    boxes2 : N x 4, (y1, x1, y2, x2)
 
     For better performance, pass the largest set first and the smaller second.
     """
@@ -431,7 +432,7 @@ def resize_mask(mask, scale, padding):
 
 def minimize_mask(bbox, mask, mini_shape):
     """Resize masks to a smaller version to cut memory load.
-    Mini-masks can then resized back to image scale using expand_masks()
+    Mini-masks can then be resized back to image scale using expand_masks()
 
     See inspect_data.ipynb notebook for more details.
     """
